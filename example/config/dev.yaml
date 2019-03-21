@@ -1,0 +1,9 @@
+name: app
+
+rest:
+  port: 8080
+  doc: true
+  mode: debug
+
+logger:
+  level: debug
