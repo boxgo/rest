@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/boxgo/swaggerfiles"
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/spec"
 )
@@ -111,18 +112,22 @@ func (server *Server) serveDoc() {
 		return
 	}
 
-	server.engine.GET("/swagger/index.html", func(ctx *gin.Context) {
-		ctx.Data(200, "text/html", []byte(swaggerHTML))
-	})
-	server.engine.GET("/swagger/api.json", func(ctx *gin.Context) {
-		ctx.JSON(200, server.spec)
-	})
-	server.engine.GET("/swagger/config.json", func(ctx *gin.Context) {
-		ctx.JSON(200, map[string]interface{}{
-			"urls":                   []apiURL{apiURL{Name: "api-doc", URL: "/swagger/api.json"}},
-			"displayOperationId":     true,
-			"displayRequestDuration": true,
-		})
+	apiJSONURL := "/swagger/api.json"
+	apiCfgURL := "/swagger/config.json"
+
+	server.engine.GET("/swagger/*any", func(ctx *gin.Context) {
+		switch ctx.Request.URL.Path {
+		case apiJSONURL:
+			ctx.JSON(200, server.spec)
+		case apiCfgURL:
+			ctx.JSON(200, map[string]interface{}{
+				"urls":                   []apiURL{apiURL{Name: "api-doc", URL: apiJSONURL}},
+				"displayOperationId":     true,
+				"displayRequestDuration": true,
+			})
+		default:
+			gin.WrapH(swaggerfiles.Handler)(ctx)
+		}
 	})
 }
 
