@@ -88,20 +88,22 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 // Describe a api
-func (server *Server) Describe(api API) {
-	pluginHandlers := server.plugin.Middlewarify(api)
-	finalHandlers := append(pluginHandlers, api.Handlers...)
+func (server *Server) Describe(apis ...API) {
+	for _, api := range apis {
+		pluginHandlers := server.plugin.Middlewarify(api)
+		finalHandlers := append(pluginHandlers, api.Handlers...)
 
-	server.spec.DescribeAPI(api.Path, api.Method, Operation{
-		Tags:        api.Tags,
-		Summary:     api.Summary,
-		Description: api.Description,
-		Deprecated:  api.Deprecated,
-		Parameters:  api.Parameters,
-		Responses:   api.Responses,
-	})
+		server.spec.DescribeAPI(api.Path, api.Method, Operation{
+			Tags:        api.Tags,
+			Summary:     api.Summary,
+			Description: api.Description,
+			Deprecated:  api.Deprecated,
+			Parameters:  api.Parameters,
+			Responses:   api.Responses,
+		})
 
-	server.engine.Handle(strings.ToUpper(api.Method), api.Path, finalHandlers...)
+		server.engine.Handle(strings.ToUpper(api.Method), api.Path, finalHandlers...)
+	}
 }
 
 // Serve box serve handler
