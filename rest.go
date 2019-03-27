@@ -7,7 +7,6 @@ import (
 
 	"github.com/boxgo/swaggerfiles"
 	"github.com/gin-gonic/gin"
-	"github.com/go-openapi/spec"
 )
 
 type (
@@ -19,15 +18,27 @@ type (
 
 		engine *gin.Engine
 		server *http.Server
-		spec   OpenAPI
-		plugin PluginRegister
+		spec   *Spec
+		plugin *PluginRegister
 	}
 
 	// API description information
 	API struct {
-		Method    string
-		Path      string
-		Operation *spec.Operation
+		Method      string
+		Path        string
+		Tags        []string
+		Summary     string
+		Description string
+		Deprecated  bool
+		Parameters  Parameters
+		Responses   Responses
+		Extension   map[string]interface{}
+		Handlers    gin.HandlersChain `json:"-"`
+	}
+
+	apiURL struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
 	}
 )
 
@@ -77,12 +88,20 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 // Describe a api
-func (server *Server) Describe(api API, handlers ...gin.HandlerFunc) {
+func (server *Server) Describe(api API) {
 	pluginHandlers := server.plugin.Middlewarify(api)
-	finalHandlers := append(pluginHandlers, handlers...)
+	finalHandlers := append(pluginHandlers, api.Handlers...)
+
+	server.spec.DescribeAPI(api.Path, api.Method, Operation{
+		Tags:        api.Tags,
+		Summary:     api.Summary,
+		Description: api.Description,
+		Deprecated:  api.Deprecated,
+		Parameters:  api.Parameters,
+		Responses:   api.Responses,
+	})
 
 	server.engine.Handle(strings.ToUpper(api.Method), api.Path, finalHandlers...)
-	server.spec.RegisterOperation(api)
 }
 
 // Serve box serve handler
@@ -135,8 +154,8 @@ func (server *Server) serveDoc() {
 func NewServer() *Server {
 	server := &Server{
 		engine: gin.New(),
-		spec:   OpenAPI{},
-		plugin: &pluginRegister{},
+		plugin: NewPluginRegister(),
+		spec:   NewSpec(),
 	}
 
 	return server
