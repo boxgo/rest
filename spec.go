@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -174,11 +175,25 @@ type (
 	}
 )
 
+var (
+	replaceRegexp *regexp.Regexp
+)
+
+func init() {
+	var err error
+	replaceRegexp, err = regexp.Compile(":(\\w+)$")
+	if err != nil {
+		panic(err)
+	}
+}
+
 // DescribeAPI describe a api
 func (spec *Spec) DescribeAPI(path, method string, op Operation) {
 	if len(spec.Paths) == 0 {
 		spec.Paths = make(map[string]PathItem)
 	}
+
+	path = spec.gin2oai(path)
 
 	pathItem := spec.Paths[path]
 	switch strings.ToLower(method) {
@@ -199,6 +214,15 @@ func (spec *Spec) DescribeAPI(path, method string, op Operation) {
 	}
 
 	spec.Paths[path] = pathItem
+}
+
+func (spec *Spec) gin2oai(path string) string {
+	paths := []string{}
+	for _, p := range strings.Split(path, "/") {
+		paths = append(paths, replaceRegexp.ReplaceAllString(p, "{$1}"))
+	}
+
+	return strings.Join(paths, "/")
 }
 
 // NewSpec new a spec
