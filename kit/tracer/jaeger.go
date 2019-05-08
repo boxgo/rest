@@ -45,7 +45,7 @@ func (t *Tracer) ConfigDidLoad(context.Context) {
 
 // Jaeger middleware
 func (t *Tracer) Jaeger() gin.HandlerFunc {
-	const ctxSpanKey := "tracing-span"
+	ctxSpanKey := "tracing-span"
 
 	return func(ctx *gin.Context) {
 		var span opentracing.Span
@@ -56,7 +56,7 @@ func (t *Tracer) Jaeger() gin.HandlerFunc {
 		if ctxSpan, ok := ctx.Get(ctxSpanKey); ok {
 			span = startSpanWithParent(ctxSpan.(opentracing.Span).Context(), operation, method, path)
 		} else {
-			span = startSpanWithHeader(t.tracer, &ctx.Request.Header, operation, method, path)
+			span = startSpanWithHeader(t.tracer.Tracer(), &ctx.Request.Header, operation, method, path)
 		}
 
 		ctx.Set(ctxSpanKey, span)
@@ -74,7 +74,7 @@ func (t *Tracer) Jaeger() gin.HandlerFunc {
 }
 
 // New a tracer
-func New(name string, ts ...tracer.Tracer) *Tracer {
+func New(name string, ts ...*tracer.Tracer) *Tracer {
 	t := &Tracer{
 		name: name,
 	}
