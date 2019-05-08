@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/boxgo/kit/logger"
+	"github.com/boxgo/logger"
 	"github.com/boxgo/rest"
 	"github.com/gin-gonic/gin"
 )

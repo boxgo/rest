@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"github.com/boxgo/kit/logger"
+	"github.com/boxgo/logger"
 	"github.com/gin-gonic/gin"
 )
 
