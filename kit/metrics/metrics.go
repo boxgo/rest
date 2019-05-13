@@ -14,6 +14,11 @@ import (
 type (
 	// Metrics config
 	Metrics struct {
+		RequestTotalName           string `config:"requestTotalName"`
+		RequestDurationSecondsName string `config:"requestDurationSeconds"`
+		RequestSizeBytesName       string `config:"requestSizeBytes"`
+		ResponseSizeBytesName      string `config:"responseSizeBytes"`
+
 		name                string
 		metrics             *metrics.Metrics
 		requestURLMappingFn func(*gin.Context) string
@@ -49,11 +54,24 @@ func (g *Metrics) ConfigWillLoad(context.Context) {
 func (g *Metrics) ConfigDidLoad(context.Context) {
 	g.requestURLMappingFn = urlMapping
 
+	if g.RequestTotalName == "" {
+		g.RequestTotalName = "http_request_total"
+	}
+	if g.RequestDurationSecondsName == "" {
+		g.RequestDurationSecondsName = "http_request_duration_seconds"
+	}
+	if g.RequestSizeBytesName == "" {
+		g.RequestSizeBytesName = "http_request_size_bytes"
+	}
+	if g.ResponseSizeBytesName == "" {
+		g.ResponseSizeBytesName = "http_response_size_bytes"
+	}
+
 	g.reqCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: g.metrics.Namespace,
 			Subsystem: g.metrics.Subsystem,
-			Name:      "http_request_total",
+			Name:      g.RequestTotalName,
 			Help:      "How many HTTP requests processed, partitioned by status code and HTTP method.",
 		},
 		labels,
@@ -63,7 +81,7 @@ func (g *Metrics) ConfigDidLoad(context.Context) {
 		prometheus.SummaryOpts{
 			Namespace: g.metrics.Namespace,
 			Subsystem: g.metrics.Subsystem,
-			Name:      "http_request_duration_seconds",
+			Name:      g.RequestDurationSecondsName,
 			Help:      "The HTTP request latencies in seconds.",
 		},
 		labels,
@@ -73,7 +91,7 @@ func (g *Metrics) ConfigDidLoad(context.Context) {
 		prometheus.SummaryOpts{
 			Namespace: g.metrics.Namespace,
 			Subsystem: g.metrics.Subsystem,
-			Name:      "http_request_size_bytes",
+			Name:      g.RequestSizeBytesName,
 			Help:      "The HTTP request sizes in bytes.",
 		},
 		labels,
@@ -83,7 +101,7 @@ func (g *Metrics) ConfigDidLoad(context.Context) {
 		prometheus.SummaryOpts{
 			Namespace: g.metrics.Namespace,
 			Subsystem: g.metrics.Subsystem,
-			Name:      "http_response_size_bytes",
+			Name:      g.ResponseSizeBytesName,
 			Help:      "The HTTP response sizes in bytes.",
 		},
 		labels,
