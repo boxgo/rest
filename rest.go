@@ -12,9 +12,9 @@ import (
 type (
 	// Server Powered by gin
 	Server struct {
-		Addr string `config:"addr" desc:"Rest server listen addr. default is :8080"`
-		Doc  bool   `config:"doc" desc:"Whether to generate an api document"`
-		Mode string `config:"mode" desc:"Gin mode: debug,release,test. default is release"`
+		Addr string `config:"addr" help:"Rest server listen addr. default is :8080"`
+		Doc  bool   `config:"doc" help:"Whether to generate an api document"`
+		Mode string `config:"mode" help:"Gin mode: debug,release,test. default is release"`
 
 		engine *gin.Engine
 		server *http.Server

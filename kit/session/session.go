@@ -15,14 +15,14 @@ type (
 	Mode int
 
 	Session struct {
-		Mode           Mode     `json:"mode"`       // 运行模式
-		SessionKeyName string   `json:"sessionKey"` // session key name
-		MasterName     string   `json:"masterName"` // 主节点名称，用于哨兵模式
-		Address        []string `json:"address"`    // 地址。单节点使用主节点ip；哨兵模式使用哨兵ip列表
-		Password       string   `json:"password"`   // 访问秘钥
-		DB             int      `json:"db"`         // 数据库
-		KeyPair        string   `json:"keyPair"`    // 加密参数
-		PoolSize       int      `json:"poolSize"`   // 连接池大小
+		Mode           Mode     `config:"mode"`       // 运行模式
+		SessionKeyName string   `config:"sessionKey"` // session key name
+		MasterName     string   `config:"masterName"` // 主节点名称，用于哨兵模式
+		Address        []string `config:"address"`    // 地址。单节点使用主节点ip；哨兵模式使用哨兵ip列表
+		Password       string   `config:"password"`   // 访问秘钥
+		DB             int      `config:"db"`         // 数据库
+		KeyPair        string   `config:"keyPair"`    // 加密参数
+		PoolSize       int      `config:"poolSize"`   // 连接池大小
 
 		app minibox.App
 	}

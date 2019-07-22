@@ -11,8 +11,8 @@ import (
 type (
 	// CookieHacker 将cookie转换为http header
 	CookieHacker struct {
-		CookieName string `json:"cookieName"` // 原始的cookie名称
-		HeaderName string `json:"headerName"` // 目标的header名称
+		CookieName string `config:"cookieName"` // 原始的cookie名称
+		HeaderName string `config:"headerName"` // 目标的header名称
 
 		app  minibox.App
 		name string

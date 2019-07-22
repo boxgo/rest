@@ -11,9 +11,9 @@ import (
 type (
 	// Logger gin中间件
 	Logger struct {
-		RequestBodyLimit  uint `json:"requestBodyLimit"`
-		RequestQueryLimit uint `json:"requestQueryLimit"`
-		ResponseBodyLimit uint `json:"responseBodyLimit"`
+		RequestBodyLimit  uint `config:"requestBodyLimit"`
+		RequestQueryLimit uint `config:"requestQueryLimit"`
+		ResponseBodyLimit uint `config:"responseBodyLimit"`
 	}
 )
 
