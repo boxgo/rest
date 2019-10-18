@@ -7,6 +7,7 @@ import (
 
 	"github.com/boxgo/box/minibox"
 	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 )
@@ -32,6 +33,7 @@ const (
 	Standalone = Mode(1)
 	Sentinel   = Mode(2)
 	Cluster    = Mode(3)
+	Cookie     = Mode(4)
 )
 
 var (
@@ -84,6 +86,8 @@ func (s *Session) Session() gin.HandlerFunc {
 			Password: s.Password,
 			DB:       s.DB,
 		}), []byte(s.KeyPair))
+	case Cookie:
+		store = cookie.NewStore([]byte(s.KeyPair))
 	default:
 		err = errors.New("未支持的Session redis集群类型")
 	}
