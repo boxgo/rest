@@ -152,6 +152,11 @@ func (server *Server) serveDoc() {
 	})
 }
 
+// Spec Open API specs
+func (server *Server) Spec() *Spec {
+	return server.spec
+}
+
 // NewServer new a rest server
 func NewServer() *Server {
 	server := &Server{
