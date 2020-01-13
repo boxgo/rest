@@ -106,6 +106,7 @@ type (
 	Items struct {
 		Type             string        `json:"type,omitempty"`
 		Format           string        `json:"format,omitempty"`
+		Description      string        `json:"description,omitempty"`
 		Items            interface{}   `json:"items,omitempty"`
 		CollectionFormat string        `json:"collectionFormat,omitempty"`
 		Default          interface{}   `json:"default,omitempty"`
