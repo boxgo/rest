@@ -3,5 +3,6 @@ debug
 
 .debug
 .DS_Store
+.idea
 
 vendor

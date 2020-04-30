@@ -4,11 +4,12 @@ import (
 	"os"
 
 	"github.com/boxgo/box/config"
-	"github.com/boxgo/box/config/loader"
+	"github.com/boxgo/config/source/env"
+	"github.com/boxgo/config/source/file"
 )
 
 const (
-	envFlag = "APP_MODE"
+	envFlag = "ENV"
 	envDev  = "dev"
 	envTest = "test"
 	envUat  = "uat"
@@ -16,10 +17,12 @@ const (
 )
 
 func newConfig() config.Config {
-	ld := loader.NewFileEnvConfig(configPath())
-	config := config.NewConfig(ld)
+	cfg := config.NewConfig(
+		file.NewSource(file.WithPath(configPath())),
+		env.NewSource(),
+	)
 
-	return config
+	return cfg
 }
 
 func configPath() string {
