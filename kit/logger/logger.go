@@ -2,18 +2,21 @@ package logger
 
 import (
 	"context"
+	"fmt"
+	"time"
 
-	"github.com/BiteBit/ginlog"
-	"github.com/boxgo/logger"
+	lg "github.com/boxgo/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/teris-io/shortid"
+	"go.uber.org/zap"
 )
 
 type (
 	// Logger gin中间件
 	Logger struct {
-		RequestBodyLimit  uint `config:"requestBodyLimit"`
-		RequestQueryLimit uint `config:"requestQueryLimit"`
-		ResponseBodyLimit uint `config:"responseBodyLimit"`
+		RequestBodyLimit  int `config:"requestBodyLimit"`
+		RequestQueryLimit int `config:"requestQueryLimit"`
+		ResponseBodyLimit int `config:"responseBodyLimit"`
 	}
 )
 
@@ -48,12 +51,80 @@ func (l *Logger) ConfigDidLoad(context.Context) {
 }
 
 // Logger zap
-func (l *Logger) Logger() gin.HandlerFunc {
-	logger := logger.Default.Desugar()
+func (l *Logger) Logger(logs ...*lg.Logger) gin.HandlerFunc {
+	var log *lg.Logger
+	if len(logs) == 0 {
+		log = lg.Default
+	} else {
+		log = logs[0]
+	}
 
-	return ginlog.Logger(logger, ginlog.Options{
-		RequestBodyLimit:  int(l.RequestBodyLimit),
-		RequestQueryLimit: int(l.RequestQueryLimit),
-		ResponseBodyLimit: int(l.ResponseBodyLimit),
-	})
+	return func(ctx *gin.Context) {
+		start := time.Now()
+		requestID, _ := shortid.Generate()
+		method := ctx.Request.Method
+		path := ctx.Request.URL.Path
+		query := ctx.Request.URL.RawQuery
+		userAgent := ctx.Request.UserAgent()
+		clientIP := ctx.ClientIP()
+		body := readBody(ctx)
+
+		if l.RequestQueryLimit < len(query) {
+			query = query[:l.RequestQueryLimit]
+		}
+		if l.RequestBodyLimit < len(body) {
+			body = body[:l.RequestBodyLimit]
+		}
+
+		ctx.Set("requestId", requestID)
+		ctx.Set("traceBizId", fmt.Sprintf("%s %s", ctx.Request.Method, ctx.Request.URL.Path))
+
+		log.TraceRaw(ctx).Info(">>>", []zap.Field{
+			zap.String("method", method),
+			zap.String("path", path),
+			zap.String("ip", clientIP),
+			zap.String("user-agent", userAgent),
+			zap.String("query", query),
+			zap.String("body", string(body)),
+		}...)
+
+		bodyWriter := newBodyWriter(ctx)
+		ctx.Writer = bodyWriter
+
+		ctx.Next()
+
+		end := time.Now()
+		latency := end.Sub(start)
+		resp := bodyWriter.body.String()
+
+		if l.ResponseBodyLimit < len(resp) {
+			resp = resp[:l.ResponseBodyLimit]
+		}
+
+		for _, err := range ctx.Errors {
+			log.TraceRaw(ctx).Info("xxx",
+				zap.String("method", method),
+				zap.String("path", path),
+				zap.String("ip", clientIP),
+				zap.String("user-agent", userAgent),
+				zap.String("query", query),
+				zap.String("body", string(body)),
+				zap.Int("status", ctx.Writer.Status()),
+				zap.String("err", err.Error()),
+			)
+		}
+
+		log.TraceRaw(ctx).Info("<<<",
+			[]zap.Field{
+				zap.String("method", method),
+				zap.String("path", path),
+				zap.String("ip", clientIP),
+				zap.String("user-agent", userAgent),
+				zap.String("query", query),
+				zap.String("body", string(body)),
+				zap.Int("status", ctx.Writer.Status()),
+				zap.Duration("latency", latency),
+				zap.String("resp", resp),
+			}...)
+	}
 }
